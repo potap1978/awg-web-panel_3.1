@@ -1,0 +1,20 @@
+# Secrets вЂ” NEVER commit
+clients.json
+clients.json.*
+wg0.conf
+wg0.conf.*
+.env
+*.pem
+*.key
+
+# Local overrides
+.env.local
+*.local
+
+# OS/IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+install.sh.bak
+previous-container.json

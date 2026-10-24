@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>AmneziaWG</title>
+<link rel="preload" href="/static/font/TTInterfaces-Medium.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<script>
+  /* Тему ставим до первой отрисовки, иначе тёмная страница успевает
+     моргнуть светлой. */
+  (() => {
+    const saved = localStorage.getItem('theme');
+    const dark = saved ? saved === 'dark'
+      : matchMedia('(prefers-color-scheme: dark)').matches;
+    if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+  })();
+</script>
+</head>
+<body>
+<div id="login" class="screen center hidden">
+  <form id="login-form" class="login">
+    <div class="mark" data-icon="shield" data-size="26"></div>
+    <h1 id="login-brand">AmneziaWG</h1>
+    <p class="muted">Управление сервером</p>
+    <input id="username" type="text" placeholder="Логин" autocomplete="username" required>
+    <input id="password" type="password" placeholder="Пароль" autocomplete="current-password" required>
+    <button type="submit" class="primary">Войти</button>
+    <div id="login-error" class="error"></div>
+  </form>
+</div>
+
+<div id="app" class="screen hidden">
+  <header>
+    <div class="brand">
+      <div class="mark" data-icon="shield" data-size="20"></div>
+      <div class="who">
+        <div class="title" id="brand-title">AmneziaWG</div>
+        <div class="sub muted" id="server-info">—</div>
+      </div>
+      <span class="badge-proto" id="proto-badge" title="">AWG</span>
+      <span class="state down" id="iface-state"><span class="dot"></span><span id="iface-text">проверяем</span></span>
+    </div>
+    <div class="actions">
+      <label class="search">
+        <span class="ic" data-icon="search" data-size="16"></span>
+        <input id="search" type="search" placeholder="Имя или адрес" autocomplete="off">
+      </label>
+      <label class="obf" title="Режим обфускации 3.x (взаимоисключающие механизмы)">
+        <span>Обфускация:</span>
+        <select id="obf-select" disabled>
+          <option value="trailers">RandomTrailers</option>
+          <option value="padding">ContentPadding</option>
+        </select>
+      </label>
+      <label class="obf" title="ContentPaddingAddition (32-128)">
+
+        <span>CPA:</span>
+
+        <select id="cpa-select" disabled>
+
+          <option value="32">32</option>
+
+          <option value="48">48</option>
+
+          <option value="64">64</option>
+
+          <option value="96">96</option>
+
+          <option value="128">128</option>
+
+        </select>
+
+      </label>
+
+      <button id="add-btn" class="primary"><span data-icon="plus" data-size="18"></span>Добавить</button>
+      <button id="backup-btn" class="icon" title="Скачать резервную копию (ключи сервера и клиентов)"><span data-icon="archive" data-size="18"></span></button>
+      <button id="torrent-btn" class="icon" title="Торрент-блокировщик"><span data-icon="magnet" data-size="18"></span></button>
+      <button id="theme-btn" class="icon" title="Тема"></button>
+      <button id="logout-btn" class="icon" title="Выйти"><span data-icon="logout" data-size="18"></span></button>
+    </div>
+  </header>
+
+  <section class="stats">
+    <div class="stat">
+      <div class="badge" data-icon="users" data-size="18"></div>
+      <div><div class="label">Клиентов</div><div class="value" id="s-total">0</div></div>
+    </div>
+    <div class="stat">
+      <div class="badge" data-icon="wifi" data-size="18"></div>
+      <div><div class="label">Онлайн</div><div class="value" id="s-online">0</div></div>
+    </div>
+    <div class="stat">
+      <div class="badge" data-icon="down" data-size="18"></div>
+      <div><div class="label">Принято</div><div class="value" id="s-rx">0</div>
+        <div class="rate" id="s-rx-rate">—</div></div>
+    </div>
+    <div class="stat">
+      <div class="badge" data-icon="up" data-size="18"></div>
+      <div><div class="label">Отдано</div><div class="value" id="s-tx">0</div>
+        <div class="rate" id="s-tx-rate">—</div></div>
+    </div>
+  </section>
+
+  <main>
+    <div id="empty" class="empty hidden">
+      <div class="badge" data-icon="users" data-size="24"></div>
+      Пока никого
+    </div>
+    <div id="rows" class="list"></div>
+  </main>
+
+  <!-- Версия и сборка: без них «обновил агент» и «агент обновился» со
+       стороны не различить, а на сервере крутится плавающий latest. -->
+  <footer class="foot muted">
+    <span id="foot-version">awg-web-panel_3.1</span>
+    <a id="foot-repo" class="repo" href="https://github.com/potap1978/awg-web-panel_3.1"
+       target="_blank" rel="noopener noreferrer" title="Исходники агента на GitHub">
+      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="currentColor">
+        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+        0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01
+        1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95
+        0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27
+        2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82
+        1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01
+        2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/>
+      </svg>
+      GitHub
+    </a>
+  </footer>
+</div>
+
+<div id="create-modal" class="modal hidden">
+  <form class="modal-card" id="create-form">
+    <div class="modal-head"><b>Новый клиент</b>
+      <button type="button" class="icon" data-close><span data-icon="close" data-size="16"></span></button></div>
+    <label class="field">
+      Имя устройства
+      <input id="create-name" placeholder="iphone-artem" maxlength="120" required>
+    </label>
+    <label class="field">
+      Telegram ID <span class="muted">— опционально, для отчётов</span>
+      <input id="create-tg" placeholder="123456789" maxlength="64" inputmode="numeric">
+    </label>
+    <label class="field">
+      Email <span class="muted">— опционально</span>
+      <input id="create-email" type="email" placeholder="user@example.com" maxlength="254">
+    </label>
+    <div class="modal-foot">
+      <button type="button" class="secondary" data-close>Отмена</button>
+      <button type="submit" class="primary">Создать</button>
+    </div>
+  </form>
+</div>
+
+<div id="limits-modal" class="modal hidden">
+  <form class="modal-card" id="limits-form">
+    <div class="modal-head"><b id="limits-title">Лимит и срок</b>
+      <button type="button" class="icon" data-close><span data-icon="close" data-size="16"></span></button></div>
+
+    <div class="field">
+      <div class="field-head">
+        <span>Лимит трафика</span>
+        <label class="switch"><input type="checkbox" id="limit-unlimited"><span>Безлимит</span></label>
+      </div>
+      <div class="pair">
+        <input id="limit-value" type="number" min="0" step="0.5" placeholder="0">
+        <select id="limit-unit">
+          <option value="1073741824">ГБ</option>
+          <option value="1099511627776">ТБ</option>
+          <option value="1048576">МБ</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-head">
+        <span>Скорость</span>
+        <label class="switch"><input type="checkbox" id="rate-unlimited"><span>Без ограничения</span></label>
+      </div>
+      <div class="pair">
+        <input id="limit-rate" type="number" min="0" step="1" placeholder="0">
+        <span class="unit">Мбит/с</span>
+      </div>
+    </div>
+
+    <label class="field">
+      Сбрасывать
+      <select id="limit-period">
+        <option value="none">не сбрасывать</option>
+        <option value="day">раз в день</option>
+        <option value="week">раз в неделю</option>
+        <option value="month">раз в месяц</option>
+        <option value="year">раз в год</option>
+      </select>
+    </label>
+
+    <div class="field">
+      <div class="field-head">
+        <span>Работает до</span>
+        <label class="switch"><input type="checkbox" id="expires-never"><span>Бессрочно</span></label>
+      </div>
+      <input id="limit-expires" type="date">
+    </div>
+
+    <div class="field">
+      <div class="field-head">
+        <span>Торрент</span>
+        <label class="switch"><input type="checkbox" id="limit-torrent-exempt"><span>Разрешить (исключение)</span></label>
+      </div>
+      <div class="muted" style="font-size:13px">Обычно торрент режется. Включи, чтобы этому клиенту разрешить.</div>
+      <label class="switch" style="margin-top:8px"><input type="checkbox" id="limit-torrent-noban"><span>Без бана</span></label>
+      <div class="muted" style="font-size:13px">Торрент режется и попадает в отчёт, но клиента не банят на срок бана сервера.</div>
+    </div>
+
+    <div class="field">
+      <div class="field-head">
+        <span>Логи клиента</span>
+        <label class="switch"><input type="checkbox" id="limit-log-enabled"><span>Хранить</span></label>
+      </div>
+      <div class="muted" style="font-size:13px">Сессии, торрент-хиты и срезы трафика в отдельный файл, авторотация по размеру. По умолчанию выкл.</div>
+      <button type="button" class="secondary" id="limit-log-view" style="margin-top:8px"><span data-icon="scroll" data-size="15"></span> Показать логи</button>
+    </div>
+
+    <label class="field">
+      Telegram ID <span class="muted">— для отчётов</span>
+      <input id="limit-tg" placeholder="123456789" maxlength="64" inputmode="numeric">
+    </label>
+    <label class="field">
+      Email
+      <input id="limit-email" type="email" placeholder="user@example.com" maxlength="254">
+    </label>
+
+    <div class="modal-foot">
+      <button type="button" class="secondary" id="limit-reset">Обнулить счётчик</button>
+      <button type="submit" class="primary">Сохранить</button>
+    </div>
+  </form>
+</div>
+
+<div id="log-modal" class="modal hidden">
+  <div class="modal-card wide">
+    <div class="modal-head"><b id="log-title">Логи</b>
+      <button class="icon" data-close><span data-icon="close" data-size="16"></span></button></div>
+    <div class="muted" id="log-meta" style="margin-bottom:8px"></div>
+    <pre id="log-body" style="max-height:52vh;overflow:auto;white-space:pre-wrap;word-break:break-word;font-size:12.5px;line-height:1.55;margin:0"></pre>
+    <div class="modal-foot">
+      <button type="button" class="secondary" id="log-purge">Очистить</button>
+      <button type="button" class="secondary" id="log-download"><span data-icon="download" data-size="16"></span>Скачать</button>
+      <button type="button" class="secondary" data-close>Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<div id="usage-modal" class="modal hidden">
+  <div class="modal-card wide">
+    <div class="modal-head"><b id="usage-title">Расход</b>
+      <button class="icon" data-close><span data-icon="close" data-size="16"></span></button></div>
+    <div class="usage-legend">
+      <span><i class="sw rx"></i>принято <b id="usage-rx">—</b></span>
+      <span><i class="sw tx"></i>отдано <b id="usage-tx">—</b></span>
+      <span class="muted" id="usage-total"></span>
+    </div>
+    <div id="usage-chart" class="chart"></div>
+  </div>
+</div>
+
+<div id="qr-modal" class="modal hidden">
+  <div class="modal-card qr-card">
+    <div class="modal-head"><b id="qr-name"></b>
+      <button class="icon" data-close><span data-icon="close" data-size="16"></span></button></div>
+    <div id="qr-body" class="qr"></div>
+    <div class="modal-foot">
+      <button class="secondary" id="qr-copy"><span data-icon="copy" data-size="16"></span>Скопировать</button>
+      <a id="qr-download" class="button primary" download><span data-icon="download" data-size="16"></span>Скачать</a>
+    </div>
+  </div>
+</div>
+
+<div id="confirm-modal" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="warn-badge" data-icon="alert" data-size="20"></span>
+        <b id="confirm-title">Удалить?</b>
+      </div>
+      <button class="icon" data-close><span data-icon="close" data-size="16"></span></button>
+    </div>
+    <p id="confirm-text" class="muted" style="margin:0;font-size:15px"></p>
+    <div class="modal-foot">
+      <button class="secondary" data-close>Отмена</button>
+      <button class="danger" id="confirm-ok">Удалить</button>
+    </div>
+  </div>
+</div>
+
+<div id="torrent-modal" class="modal hidden">
+  <form class="modal-card" id="torrent-form">
+    <div class="modal-head"><b>Торрент-блокировщик</b>
+      <button type="button" class="icon" data-close><span data-icon="close" data-size="16"></span></button></div>
+
+    <div class="field">
+      <div class="field-head">
+        <span>Блокировка (btguard)</span>
+        <label class="switch"><input type="checkbox" id="tor-enabled"><span>Включена</span></label>
+      </div>
+      <div class="muted" id="tor-status" style="font-size:13px">—</div>
+    </div>
+
+    <label class="field">
+      Webhook URL <span class="muted">— куда слать отчёты (формат Remnawave)</span>
+      <input id="tor-url" placeholder="https://bot.example.com/webhook/torrent" maxlength="2048">
+    </label>
+    <label class="field">
+      Webhook secret <span class="muted" id="tor-secret-set"></span>
+      <input id="tor-secret" type="password" placeholder="секрет для подписи (HMAC-SHA256)" maxlength="512" autocomplete="new-password">
+    </label>
+    <div class="pair">
+      <label class="field" style="flex:1">
+        Имя ноды в отчёте
+        <input id="tor-node" placeholder="awg-de-1" maxlength="120">
+      </label>
+      <label class="field" style="width:130px">
+        Бан, сек
+        <input id="tor-dur" type="number" min="0" max="2592000" step="60" placeholder="3600">
+      </label>
+    </div>
+    <div class="muted" style="font-size:13px;margin:-4px 0 12px">Поймали на торренте — клиент на это время теряет весь доступ, как в Remnawave. 0 — без бана: режем только торрент.</div>
+
+    <div class="field" id="tor-banned-wrap" hidden>
+      <div class="field-head"><span>Сейчас в бане</span></div>
+      <div id="tor-banned"></div>
+    </div>
+
+    <div class="field">
+      <div class="field-head">
+        <span>Обновление агента</span>
+        <button type="button" class="secondary" id="tor-update">Проверить</button>
+      </div>
+      <div class="muted" id="tor-update-status" style="font-size:13px">—</div>
+    </div>
+
+    <div class="modal-foot">
+      <button type="button" class="secondary" data-close>Закрыть</button>
+      <button type="submit" class="primary">Сохранить</button>
+    </div>
+  </form>
+</div>
+
+<div id="toasts" class="toasts"></div>
+<div id="subnets-modal" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div><b id="subnets-title">Подсети за клиентом</b></div>
+      <button class="icon" data-close><span data-icon="close" data-size="16"></span></button>
+    </div>
+    <div class="field">
+      <div class="hint">Одна подсеть в строку, например1 192.168.1.0/24</div>
+      <textarea id="subnets-input" rows="5" placeholder="192.168.1.0/24&#10;10.0.0.0/24" style="width:100%;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;border-radius:14px;border:1px solid var(--border);padding:10px 12px;background:var(--backgrounds-cards);color:var(--text-primary);resize:vertical"></textarea>
+      <div id="subnets-error" class="error"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="secondary" type="button" data-close>Отмена</button>
+      <button class="primary" type="button" id="subnets-save">Сохранить</button>
+    </div>
+  </div>
+</div>
+<script src="/static/app.js"></script>
+
+
+</body>
+</html>

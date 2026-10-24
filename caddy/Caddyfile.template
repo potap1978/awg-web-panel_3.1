@@ -1,0 +1,14 @@
+# Caddy reverse proxy for awg-web-panel_3.1 with Let's Encrypt IP certificate.
+# Template: replace __PUBLIC_IP__, __HTTPS_PORT__, __AGENT_PORT__.
+# Requires port 80/tcp open for ACME HTTP-01 challenge.
+https://__PUBLIC_IP__:__HTTPS_PORT__ {
+  tls {
+    issuer acme {
+      dir https://acme-v02.api.letsencrypt.org/directory
+      profile shortlived
+    }
+  }
+  @js path /static/*.js
+  header @js >Content-Type "application/javascript; charset=utf-8"
+  reverse_proxy 127.0.0.1:__AGENT_PORT__
+}
