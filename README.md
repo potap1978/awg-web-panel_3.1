@@ -29,3 +29,15 @@ docker compose pull && docker compose up -d
 ~~~bash
 cp /opt/awg/clients.json /opt/awg/clients.json.before-$(date +%s)
 ~~~
+
+
+## Сброс пароля панели
+
+Если забыли логин или пароль - запустите на сервере:
+
+```bash
+cd /opt/awg-web-panel_3.1
+sudo bash reset-password.sh
+```
+
+Скрипт спросит новый логин и пароль, обновит .env и перезапустит контейнер.
