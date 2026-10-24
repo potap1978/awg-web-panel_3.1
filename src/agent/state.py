@@ -749,7 +749,13 @@ class Store:
                     _chosen = _env if _env in allowed_cpa else 64
                 params["content_padding_addition"] = _chosen
             self.server["params"] = params
-        await self.apply()
+        # Bug: syncconf does not clear params removed from config (RandomTrailers
+        # stayed on when switching to padding, breaking the handshake).
+        # Use down/up for obfuscation mode change.
+        await self.persist()
+        await awg.down()
+        await awg.up()
+        await self.reapply()
         return {"success": True, "mode": mode,
                 "random_trailers": bool(params.get("random_trailers")),
                 "content_padding_addition": params.get("content_padding_addition") or 0}
