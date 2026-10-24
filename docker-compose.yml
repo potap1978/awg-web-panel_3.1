@@ -1,0 +1,25 @@
+services:
+  awg-web-panel:
+    image: ${AGENT_IMAGE:-ghcr.io/potap1978/awg-web-panel_3.1:latest}
+    container_name: awg-web-panel_3.1
+    restart: unless-stopped
+    environment:
+      PASSWORD_HASH: ${PASSWORD_HASH}
+      PANEL_USERNAME: ${PANEL_USERNAME:-admin}
+      WG_HOST: ${WG_HOST}
+      PORT: ${AGENT_PORT:-51821}
+      WG_INTERFACE: ${WG_INTERFACE:-awg0}
+      AWG_CONTENT_PADDING_ADDITION: ${AWG_CONTENT_PADDING_ADDITION:-64}
+    volumes:
+      - ${STATE_DIR:-/opt/awg}:/etc/amnezia/amneziawg
+    ports:
+      - "127.0.0.1:${AGENT_PORT:-51821}:${AGENT_PORT:-51821}/tcp"
+      - "${WG_PORT:-51820}:51820/udp"
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+      - NET_RAW
+    devices:
+      - /dev/net/tun
+    sysctls:
+      - net.ipv4.ip_forward=1
