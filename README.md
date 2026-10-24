@@ -24,8 +24,6 @@ cd /opt/awg-web-panel_3.1
 docker compose pull && docker compose up -d
 ~~~
 
-Если поменял код в репозитории — пуш в `main`, дождись сборки образа в GitHub Actions (~60 сек), потом `docker compose pull && docker compose up -d` на сервере.
-
 Бэкап клиентов перед обновлением (на всякий случай):
 
 ~~~bash
