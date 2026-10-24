@@ -157,6 +157,7 @@ main{padding:18px 24px 56px}
   align-items:center;gap:18px;background:var(--backgrounds-cards);
   border:1px solid var(--border);border-radius:24px;padding:14px 18px;
   transition:border-color .18s ease;
+  overflow:hidden;
 }
 .row:hover{border-color:var(--border-hover)}
 .row.off{opacity:.55}
@@ -171,11 +172,11 @@ main{padding:18px 24px 56px}
 .shake{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text-body)}
 .shake .pill{width:8px;height:8px;border-radius:999px;background:var(--text-secondary);flex:none}
 .shake .pill.live{background:var(--success);box-shadow:0 0 0 4px color-mix(in srgb,var(--success) 18%,transparent)}
-.traffic{display:flex;gap:20px;font-variant-numeric:tabular-nums}
-.traffic .col{display:flex;flex-direction:column;gap:1px}
-.traffic .val{display:flex;align-items:center;gap:6px;font-size:14px}
+.traffic{display:grid;grid-template-columns:1fr 1fr;gap:20px;font-variant-numeric:tabular-nums;min-width:0}
+.traffic .col{display:flex;flex-direction:column;gap:1px;min-width:0}
+.traffic .val{display:flex;align-items:center;gap:6px;font-size:14px;min-width:0;white-space:nowrap;overflow:hidden}
 .traffic .val svg{color:var(--text-secondary)}
-.traffic .rate{font-size:12px;color:var(--text-secondary);min-height:15px;padding-left:22px}
+.traffic .rate{font-size:12px;color:var(--text-secondary);min-height:15px;line-height:15px;padding-left:22px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row-actions{display:flex;gap:8px;justify-content:flex-end}
 
 /* Лимит показываем только у тех, кому он задан: пустая полоска у всех
